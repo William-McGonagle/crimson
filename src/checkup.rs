@@ -1,6 +1,7 @@
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::thread;
+use std::time::Duration;
 
 #[path = "./request.rs"] mod request;
 #[path = "./response.rs"] mod response;
@@ -11,8 +12,16 @@ pub fn send_checkup(target_address:&str, target_port:&str) {
     if target_address == "localhost" { target = format!("127.0.0.1:{}", target_port); }
 
     let perfect_requests = [
-        (b"this is a test".to_vec(), "no response"),
-        (b"GET / HTTP/1.1\n\n\n".to_vec(), "good response")
+        (b"this is a test".to_vec(), "no response"), // bad request
+        (b"GET".to_vec(), "timeout"), // bad request
+        (b"GET ".to_vec(), "timeout"), // bad request
+        (b"GET /".to_vec(), "timeout"), // bad request
+        (b"GET / ".to_vec(), "timeout"), // bad request
+        (b"GET  ".to_vec(), "timeout"), // bad request
+        (b"GET  HTTP/1.1".to_vec(), "no response"), // bad request
+        (b"GET / HTTP/1.1".to_vec(), "timeout"), // bad request
+        (b"GET / HTTP/1.1\n\n\n".to_vec(), "good response"), // unix line endings
+        (b"GET / HTTP/1.1\n\r\n\r\n\r".to_vec(), "good response"), // windows line endings
     ];
 
     for request in perfect_requests {
@@ -29,9 +38,15 @@ pub fn send_checkup(target_address:&str, target_port:&str) {
 
 pub fn run_route(target:&str, request:Vec<u8>, response:&str) {
 
-    if send_checkup_route(&target, request) != response { 
+    let actual = send_checkup_route(&target, request);
 
-        println!("Unexpected");
+    if actual != response { 
+
+        println!("❌ Expected \"{}\" but got \"{}\"", response, actual);
+
+    } else {
+
+        println!("✅ Expected \"{}\" and got it", response);
 
     }
 
@@ -39,17 +54,34 @@ pub fn run_route(target:&str, request:Vec<u8>, response:&str) {
 
 pub fn send_checkup_route(target:&str, request:Vec<u8>) -> String {
 
-    let mut stream = TcpStream::connect(target).expect("Error Connecting to the Server!");
+    let mut stream;
+    
+    match TcpStream::connect(target) {
 
+        Ok(v) => { stream = v; },
+        Err(v) => { return "error connecting".to_string(); }
+ 
+    }
+    
     stream.write(&request[..]).unwrap();
     
     let mut buffer = String::new();
 
-    stream.read_to_string(&mut buffer).expect("Reading Response Failed.");
+    match stream.set_read_timeout(Some(Duration::new(1, 0))) {
+
+        Ok(v) => { },
+        Err(v) => { return "timeout".to_string(); }
+
+    }
+
+    match stream.read_to_string(&mut buffer) {
+        
+        Ok(v) => { },
+        Err(v) => { return "timeout".to_string(); }
+
+    }
 
     if buffer.len() == 0 { return "no response".to_string(); }
-
-    // println!("RESPONSE: {}", buffer);
 
     // Parse the Response
     return "good response".to_string();
