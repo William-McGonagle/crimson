@@ -7,3 +7,11 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/william-mcgonagle/crimson?color=green)
 
 Crimson and Clover is a web server testing tool that can find problems before production.
+
+## Features
+
+1. Performance
+
+1. Server Checkups
+
+1. Bulk Testing
