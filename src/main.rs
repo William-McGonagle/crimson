@@ -3,12 +3,18 @@ use std::env;
 mod help;
 mod helper;
 mod checkup;
+mod attack;
 
 fn attack_argument(args:&[String]) {
 
+    if args.len() < 2 { println!("Target needed."); return; }
+
+    let target = &args[1];
+    let split_target = helper::split_port_and_address(target).unwrap();
+
     println!("Starting Attack on {} with {} Workers...", "localhost:3000", 300);
 
-
+    attack::send_attack(split_target[0], split_target[1]);
 
 }
 
