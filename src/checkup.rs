@@ -17,12 +17,10 @@ pub fn send_checkup(target_address:&str, target_port:&str) {
 
     for request in perfect_requests {
 
-        let target = target.clone();
-
         // All Good
-        thread::spawn(move || {
+        // thread::spawn(move || {
             run_route(&target.to_string(), request.0, request.1)        
-        });
+        // });
 
     }
     // stream.read(&mut [0; 128]);
