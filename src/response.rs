@@ -1,17 +1,13 @@
 use std::collections::HashMap;
 
 pub struct Response {
-
-    pub response_code:u16,
-    pub body:String,
-    pub headers:HashMap<String, String>
-
+    pub response_code: u16,
+    pub body: String,
+    pub headers: HashMap<String, String>,
 }
 
 impl Response {
-    
     pub fn response_full(self) -> String {
-
         return format!(
             "HTTP/1.1 {} {}\r\n{}\r\n{}",
             self.response_code,
@@ -19,30 +15,23 @@ impl Response {
             Response::response_headers(self.headers),
             self.body
         );
-
     }
 
-    pub fn response_headers(headers:HashMap<String, String>) -> String {
-
+    pub fn response_headers(headers: HashMap<String, String>) -> String {
         let mut output = "".to_owned();
 
         for (key, value) in headers {
-        
             output.push_str(&key);
             output.push_str(": ");
             output.push_str(&value);
             output.push_str("\r\n");
-        
         }
 
         return output;
-
     }
 
-    pub fn response_text(response_code:u16) -> String {
-
+    pub fn response_text(response_code: u16) -> String {
         return match response_code {
-
             100 => "Continue",
             101 => "Switching Protocols",
             102 => "Processing",
@@ -111,10 +100,8 @@ impl Response {
             511 => "Network Authentication Required",
             599 => "Network Connect Timeout Error",
 
-            _ => "Random"
-
-        }.to_string();
-
+            _ => "Random",
+        }
+        .to_string();
     }
-
 }
