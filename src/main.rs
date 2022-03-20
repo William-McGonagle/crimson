@@ -1,3 +1,4 @@
+use clap::{Args, Parser, Subcommand};
 use std::env;
 
 mod help;
@@ -64,22 +65,49 @@ fn not_found_argument(args:&[String]) {
 
 }
 
+#[derive(Debug, Parser)]
+struct Cli {
+    /// Command to run
+    #[clap(subcommand)]
+    command: Command,
+
+    /// Debug mode
+    #[clap(short, long)]
+    debug: bool,
+}
+
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Attack target
+    Attack(Target),
+
+    /// Check up on target
+    Checkup(Target),
+}
+
+#[derive(Args, Debug)]
+struct Target {
+    /// Host to attack
+    #[clap(long, default_value = "localhost")]
+    host: String,
+
+    /// Port on which to attack
+    #[clap(short, long, default_value_t = 3000)]
+    port: u16,
+}
+
 fn main() {
-
-    let args: Vec<String> = env::args().collect();
-    let args = &args[1..];
-    
-    if args.len() == 0 { println!("BORING! No Argument Provided."); return; }
-
-    let main_argument:&str = &args[0];
-
-    match main_argument {
-
-        "help" => help::help_argument(args),
-        "attack" => attack_argument(args),
-        "checkup" => checkup_argument(args),
-        _ => not_found_argument(args)
-
+    let cli = Cli::parse();
+    if cli.debug {
+        dbg!(&cli);
     }
 
+    match &cli.command {
+        Command::Attack(target) => {
+            println!("Attack target {:?} on port {:?}", target.host, target.port)
+        }
+        Command::Checkup(target) => {
+            println!("Checkup target {:?} on port {:?}", target.host, target.port)
+        }
+    }
 }
